@@ -1,0 +1,11 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: authenticator
+  namespace: traefik
+spec:
+    plugin:
+        authenticator:
+            keycloak: http://keycloak.keycloak.svc.cluster.local:8080
+            excludeClaims:
+             - iss
