@@ -3,7 +3,7 @@ module github.com/vandebron/keycloak-config/authenticator
 go 1.23.5
 
 require (
-	github.com/golang-jwt/jwt/v4 v4.4.2
+	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/stretchr/testify v1.10.0
 )
 
