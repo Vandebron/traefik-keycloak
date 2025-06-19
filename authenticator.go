@@ -137,8 +137,8 @@ func (a *Authenticator) periodicRefreshJWK(ctx context.Context, interval time.Du
 func (a *Authenticator) refreshJWK() {
 	jwks, err := a.kc.GetJWK(a.cfg.Realm)
 	if err != nil {
-			log.Printf("Error refreshing JWKs for realm %s: %v", a.cfg.Realm, err)
-			return
+		log.Printf("Error refreshing JWKs for realm %s: %v", a.cfg.Realm, err)
+		return
 	}
 
 	a.jwks = jwks
