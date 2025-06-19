@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"text/template"
 	"time"
 
@@ -44,6 +45,7 @@ type Authenticator struct {
 	cfg      *Config
 	template *template.Template
 	realms   []string
+	mu       sync.RWMutex
 }
 
 // New initialises the plugin.
@@ -93,9 +95,13 @@ func (a *Authenticator) ServeHTTP(
 		r.Header.Set(UnauthenticatedHeader, "unauthenticated")
 	}
 
+	a.mu.RLock()
+	jwks := a.jwks
+	a.mu.RUnlock()
+
 	validator := jwk.New(
 		token,
-		a.jwks,
+		jwks,
 	)
 
 	claims, err := validator.Validate()
@@ -141,7 +147,9 @@ func (a *Authenticator) refreshJWK() {
 		return
 	}
 
+	a.mu.Lock()
 	a.jwks = jwks
+	a.mu.Unlock()
 }
 
 // getAuthToken extracts the Bearer token from the
