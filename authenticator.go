@@ -3,10 +3,13 @@ package authenticator
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"text/template"
+	"time"
 
 	"github.com/vandebron/keycloak-config/authenticator/pkg/jwk"
 	"github.com/vandebron/keycloak-config/authenticator/pkg/keycloak"
@@ -21,6 +24,7 @@ type Config struct {
 	Keycloak      string   `json:"keycloak,omitempty"`
 	Realm         string   `json:"realm,omitempty"`
 	ExcludeClaims []string `json:"excludeClaims,omitempty"`
+	RefreshInterval string `json:"refreshInterval,omitempty"`
 }
 
 // CreateConfig creates the default plugin configuration.
@@ -28,6 +32,7 @@ func CreateConfig() *Config {
 	return &Config{
 		Keycloak:      "",
 		ExcludeClaims: []string{},
+		RefreshInterval: "30m",
 	}
 }
 
@@ -40,6 +45,7 @@ type Authenticator struct {
 	cfg      *Config
 	template *template.Template
 	realms   []string
+	mu       sync.RWMutex
 }
 
 // New initialises the plugin.
@@ -49,23 +55,32 @@ func New(
 	config *Config,
 	name string,
 ) (http.Handler, error) {
+	refreshInterval, err := time.ParseDuration(config.RefreshInterval)
+	if err != nil {
+		os.Stderr.WriteString(fmt.Sprintf("Error parsing refresh interval: %v\n", err))
+		return nil, err
+	}
+
 	kc := keycloak.New(keycloak.WithHost(config.Keycloak))
 
-	// TODO we should periodically refresh the JWKs
 	jwks, err := kc.GetJWK(config.Realm)
 	if err != nil {
 		os.Stderr.WriteString(fmt.Sprintf("Error fetching JWKs: %v\n", err))
 		return nil, err
 	}
 
-	return &Authenticator{
+	a := &Authenticator{
 		next:   next,
 		name:   name,
 		kc:     kc,
 		cfg:    config,
 		jwks:   jwks,
 		realms: []string{config.Realm},
-	}, nil
+	}
+
+	a.periodicRefreshJWK(ctx, refreshInterval)
+
+	return a, nil
 }
 
 // ServeHTTP is the authentication middleware that sets the
@@ -80,9 +95,13 @@ func (a *Authenticator) ServeHTTP(
 		r.Header.Set(UnauthenticatedHeader, "unauthenticated")
 	}
 
+	a.mu.RLock()
+	jwks := a.jwks
+	a.mu.RUnlock()
+
 	validator := jwk.New(
 		token,
-		a.jwks,
+		jwks,
 	)
 
 	claims, err := validator.Validate()
@@ -101,6 +120,39 @@ func (a *Authenticator) ServeHTTP(
 	}
 
 	a.next.ServeHTTP(w, r)
+}
+
+// Starts a goroutine that periodically refreshes the JWKs
+func (a *Authenticator) periodicRefreshJWK(ctx context.Context, interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				a.refreshJWK()
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+}
+
+// Refreshes JWKs for configured realm.
+func (a *Authenticator) refreshJWK() {
+	jwks, err := a.kc.GetJWK(a.cfg.Realm)
+	if err != nil {
+		slog.Error("Error refreshing JWKs", "realm", a.cfg.Realm, "error", err)
+		return
+	}
+
+	a.mu.Lock()
+	a.jwks = jwks
+	a.mu.Unlock()
+
+	slog.Info("Successfully refreshed JWKs", "realm", a.cfg.Realm)
+
 }
 
 // getAuthToken extracts the Bearer token from the
