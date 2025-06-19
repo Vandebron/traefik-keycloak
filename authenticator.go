@@ -3,7 +3,7 @@ package authenticator
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"strings"
@@ -143,13 +143,16 @@ func (a *Authenticator) periodicRefreshJWK(ctx context.Context, interval time.Du
 func (a *Authenticator) refreshJWK() {
 	jwks, err := a.kc.GetJWK(a.cfg.Realm)
 	if err != nil {
-		log.Printf("Error refreshing JWKs for realm %s: %v", a.cfg.Realm, err)
+		slog.Error("Error refreshing JWKs", "realm", a.cfg.Realm, "error", err)
 		return
 	}
 
 	a.mu.Lock()
 	a.jwks = jwks
 	a.mu.Unlock()
+
+	slog.Info("Successfully refreshed JWKs", "realm", a.cfg.Realm)
+
 }
 
 // getAuthToken extracts the Bearer token from the
