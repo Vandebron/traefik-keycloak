@@ -55,7 +55,7 @@ func New(
 ) (http.Handler, error) {
 	refreshInterval, err := time.ParseDuration(config.RefreshInterval)
 	if err != nil {
-		os.Stderr.WriteString(fmt.Sprintf("Error parsing refresh interval: %w", err))
+		os.Stderr.WriteString(fmt.Sprintf("Error parsing refresh interval: %v\n", err))
 		return nil, err
 	}
 
