@@ -32,7 +32,7 @@ func CreateConfig() *Config {
 	return &Config{
 		Keycloak:      "",
 		ExcludeClaims: []string{},
-		RefreshInterval: "1h", // TODO: what's a good default?
+		RefreshInterval: "30m",
 	}
 }
 
