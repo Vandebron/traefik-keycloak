@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/vandebron/keycloak-config/authenticator/pkg/jwk"
+	"github.com/vandebron/traefik-keycloak/pkg/jwk"
 )
 
 // KeycloakClient represents a client for interacting with Keycloak.
@@ -54,7 +54,7 @@ func (kc *KeycloakClient) GetJWK(
 	realm string,
 ) (*jwk.JWKResponse, error) {
 	jwks := &jwk.JWKResponse{}
-	url := kc.host + "/auth/realms/" + realm + "/protocol/openid-connect/certs"
+	url := kc.host + "/realms/" + realm + "/protocol/openid-connect/certs"
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return jwks, err
@@ -67,7 +67,7 @@ func (kc *KeycloakClient) GetJWK(
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return jwks, fmt.Errorf("failed to get JWK: %s", res.Status)
+		return jwks, fmt.Errorf("failed to get JWK: %s %v", res.Status, url)
 	}
 
 	defer res.Body.Close()

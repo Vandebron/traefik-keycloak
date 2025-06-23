@@ -1,0 +1,44 @@
+networks:
+  data-network:
+    driver: bridge
+services:
+  traefik-proxy:
+    image: traefik:v3.3
+    container_name: traefik
+    networks:
+      - data-network
+    command:
+      #- "--log.level=DEBUG"
+      - --providers.docker=true
+      - --accesslog=true
+      ## Entrypoints:
+      - --entrypoints.web.address=:80
+      - --entrypoints.traefik.address=:9000
+      ## Enable Dashboard available only from the docker localhost:9000
+      - --api.dashboard=true
+      - --api.insecure=true
+      ## Enable local plugins:
+      - --experimental.localPlugins.traefik-keycloak.moduleName=github.com/vandebron/traefik-keycloak
+    ports:
+      - 80:80
+      - 9000:9000
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - ./:/plugins-local/src/github.com/vandebron/traefik-keycloak
+  httpbin:
+    container_name: httpbin
+    image: ghcr.io/mccutchen/go-httpbin:2.18.0
+    networks:
+      - data-network
+    depends_on:
+      - traefik-proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.httpbin.rule=Host(`httpbin.localhost`)
+      - traefik.http.routers.httpbin.entrypoints=web
+      - traefik.http.routers.httpbin.service=httpbin-svc
+      - traefik.http.services.httpbin-svc.loadbalancer.server.port=8080
+      - traefik.http.routers.httpbin.middlewares=traefik-keycloak
+      - traefik.http.middlewares.traefik-keycloak.plugin.traefik-keycloak.keycloak=${KEYCLOAK_URL:-https://keycloak.example.com}
+      - traefik.http.middlewares.traefik-keycloak.plugin.traefik-keycloak.realm=${REALM:-myrealm}
+      - traefik.http.middlewares.traefik-keycloak.plugin.traefik-keycloak.excludeClaims=iss

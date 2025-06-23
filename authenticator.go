@@ -1,9 +1,8 @@
-package authenticator
+package traefik_keycloak
 
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"os"
 	"strings"
@@ -11,8 +10,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/vandebron/keycloak-config/authenticator/pkg/jwk"
-	"github.com/vandebron/keycloak-config/authenticator/pkg/keycloak"
+	"github.com/vandebron/traefik-keycloak/pkg/jwk"
+	"github.com/vandebron/traefik-keycloak/pkg/keycloak"
 )
 
 const (
@@ -31,6 +30,7 @@ type Config struct {
 func CreateConfig() *Config {
 	return &Config{
 		Keycloak:      "",
+		Realm:         "master",
 		ExcludeClaims: []string{},
 		RefreshInterval: "30m",
 	}
@@ -125,9 +125,9 @@ func (a *Authenticator) ServeHTTP(
 // Starts a goroutine that periodically refreshes the JWKs
 func (a *Authenticator) periodicRefreshJWK(ctx context.Context, interval time.Duration) {
 	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
 
 	go func() {
+		os.Stdout.WriteString(fmt.Sprintf("Starting periodic JWK refresh every %s\n", interval))
 		for {
 			select {
 			case <-ticker.C:
@@ -143,7 +143,7 @@ func (a *Authenticator) periodicRefreshJWK(ctx context.Context, interval time.Du
 func (a *Authenticator) refreshJWK() {
 	jwks, err := a.kc.GetJWK(a.cfg.Realm)
 	if err != nil {
-		slog.Error("Error refreshing JWKs", "realm", a.cfg.Realm, "error", err)
+		os.Stderr.WriteString(fmt.Sprintf("Error refreshing JWKs for realm %s: %v\n", a.cfg.Realm, err))
 		return
 	}
 
@@ -151,8 +151,7 @@ func (a *Authenticator) refreshJWK() {
 	a.jwks = jwks
 	a.mu.Unlock()
 
-	slog.Info("Successfully refreshed JWKs", "realm", a.cfg.Realm)
-
+	os.Stdout.WriteString(fmt.Sprintf("Successfully refreshed JWKs for realm %s\n", a.cfg.Realm))
 }
 
 // getAuthToken extracts the Bearer token from the

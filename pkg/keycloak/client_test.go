@@ -8,11 +8,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/vandebron/keycloak-config/authenticator/pkg/jwk"
+	"github.com/vandebron/traefik-keycloak/pkg/jwk"
 )
 
 const (
-	baseURL = "/auth"
+	baseURL = "/some-prefix"
 )
 
 // GetMockClient Returns a Mock Client in order to test the KeycloakClient
@@ -69,7 +69,7 @@ func TestKeycloakClient_GetJWK(t *testing.T) {
 		data, err := json.Marshal(mockJWK)
 		assert.NoError(err)
 
-		mux.HandleFunc("/auth/realms/test-realm/protocol/openid-connect/certs", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/realms/test-realm/protocol/openid-connect/certs", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(data)
 		})
@@ -84,7 +84,7 @@ func TestKeycloakClient_GetJWK(t *testing.T) {
 		client, mux, _, teardown := GetMockClient()
 		defer teardown()
 
-		mux.HandleFunc("/auth/realms/test-realm/protocol/openid-connect/certs", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/realms/test-realm/protocol/openid-connect/certs", func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "forbidden", http.StatusForbidden)
 		})
 
@@ -97,7 +97,7 @@ func TestKeycloakClient_GetJWK(t *testing.T) {
 		client, mux, _, teardown := GetMockClient()
 		defer teardown()
 
-		mux.HandleFunc("/auth/realms/test-realm/protocol/openid-connect/certs", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/realms/test-realm/protocol/openid-connect/certs", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			fmt.Fprint(w, `{"keys":[`)
 		})
@@ -112,7 +112,7 @@ func TestKeycloakClient_GetJWK(t *testing.T) {
 		defer teardown()
 
 		data, _ := json.Marshal(jwk.JWKResponse{Keys: []jwk.JWK{}})
-		mux.HandleFunc("/auth/realms/test-realm/protocol/openid-connect/certs", func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/realms/test-realm/protocol/openid-connect/certs", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(data)
 		})
