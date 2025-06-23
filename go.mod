@@ -1,4 +1,4 @@
-module github.com/vandebron/keycloak-config/authenticator
+module github.com/vandebron/traefik-keycloak
 
 go 1.23.5
 
