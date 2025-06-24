@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/vandebron/traefik-keycloak/pkg/jwk"
+	"github.com/Vandebron/traefik-keycloak/pkg/jwk"
 )
 
 // KeycloakClient represents a client for interacting with Keycloak.

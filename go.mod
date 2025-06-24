@@ -1,4 +1,4 @@
-module github.com/vandebron/traefik-keycloak
+module github.com/Vandebron/traefik-keycloak
 
 go 1.23.5
 

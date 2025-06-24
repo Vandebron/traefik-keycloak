@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/Vandebron/traefik-keycloak/pkg/jwk"
 	"github.com/stretchr/testify/require"
-	"github.com/vandebron/traefik-keycloak/pkg/jwk"
 )
 
 const (
