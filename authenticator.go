@@ -10,8 +10,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/vandebron/traefik-keycloak/pkg/jwk"
-	"github.com/vandebron/traefik-keycloak/pkg/keycloak"
+	"github.com/Vandebron/traefik-keycloak/pkg/jwk"
+	"github.com/Vandebron/traefik-keycloak/pkg/keycloak"
 )
 
 const (
@@ -20,18 +20,18 @@ const (
 
 // Config the plugin configuration.
 type Config struct {
-	Keycloak      string   `json:"keycloak,omitempty"`
-	Realm         string   `json:"realm,omitempty"`
-	ExcludeClaims []string `json:"excludeClaims,omitempty"`
-	RefreshInterval string `json:"refreshInterval,omitempty"`
+	Keycloak        string   `json:"keycloak,omitempty"`
+	Realm           string   `json:"realm,omitempty"`
+	ExcludeClaims   []string `json:"excludeClaims,omitempty"`
+	RefreshInterval string   `json:"refreshInterval,omitempty"`
 }
 
 // CreateConfig creates the default plugin configuration.
 func CreateConfig() *Config {
 	return &Config{
-		Keycloak:      "",
-		Realm:         "master",
-		ExcludeClaims: []string{},
+		Keycloak:        "",
+		Realm:           "master",
+		ExcludeClaims:   []string{},
 		RefreshInterval: "30m",
 	}
 }

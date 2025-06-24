@@ -17,8 +17,9 @@ services:
       ## Enable Dashboard available only from the docker localhost:9000
       - --api.dashboard=true
       - --api.insecure=true
-      ## Enable local plugins:
-      - --experimental.localPlugins.traefik-keycloak.moduleName=github.com/vandebron/traefik-keycloak
+
+      - "--experimental.plugins.traefik-keycloak.modulename=github.com/vandebron/traefik-keycloak"
+      - "--experimental.plugins.traefik-keycloak.version=v0.0.3"
     ports:
       - 80:80
       - 9000:9000
