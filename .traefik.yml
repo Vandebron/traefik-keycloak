@@ -6,8 +6,7 @@ import: github.com/Vandebron/traefik-keycloak
 summary: "Use Keycloak JWK Endpoint to verify JWT tokens passed in Authorization header and add any claims in token to requests headers with `X-Auth-` prefix."
 
 testData:
-  keycloak: https://keycloak.example.com
-  realm: myrealm
+  keycloak: https://vandebron.nl/auth
   exludedClaims:
     - iss
     - aud
