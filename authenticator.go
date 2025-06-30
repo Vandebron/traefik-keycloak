@@ -30,7 +30,7 @@ type Config struct {
 func CreateConfig() *Config {
 	return &Config{
 		Keycloak:        "",
-		Realm:           "master",
+		Realm:           "vandebron",
 		ExcludeClaims:   []string{},
 		RefreshInterval: "30m",
 	}
