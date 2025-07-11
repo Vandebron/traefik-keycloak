@@ -92,7 +92,7 @@ func (a *Authenticator) ServeHTTP(
 	token := getAuthToken(r)
 
 	if token == "" {
-		r.Header.Set(UnauthenticatedHeader, "unauthenticated")
+		r.Header.Set(UnauthenticatedHeader, "true")
 	}
 
 	a.mu.RLock()
@@ -163,7 +163,7 @@ func getAuthToken(r *http.Request) string {
 	}
 
 	parts := strings.Split(authHeader, " ")
-	if len(parts) != 2 || parts[0] != "Bearer" {
+	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 		return ""
 	}
 
