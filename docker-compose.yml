@@ -18,14 +18,13 @@ services:
       - --api.dashboard=true
       - --api.insecure=true
 
-      - "--experimental.plugins.traefik-keycloak.modulename=github.com/vandebron/traefik-keycloak"
-      - "--experimental.plugins.traefik-keycloak.version=v0.0.3"
+      - --experimental.localPlugins.traefik-keycloak.moduleName=github.com/Vandebron/traefik-keycloak
     ports:
       - 80:80
       - 9000:9000
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - ./:/plugins-local/src/github.com/vandebron/traefik-keycloak
+      - ./:/plugins-local/src/github.com/Vandebron/traefik-keycloak
   httpbin:
     container_name: httpbin
     image: ghcr.io/mccutchen/go-httpbin:2.18.0
