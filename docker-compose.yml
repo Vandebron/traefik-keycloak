@@ -3,7 +3,7 @@ networks:
     driver: bridge
 services:
   traefik-proxy:
-    image: traefik:v3.3
+    image: traefik:v3.5
     container_name: traefik
     networks:
       - data-network
